@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your site description">
+    
+    <link rel="shortcut icon" href="https://www.twdsprojects.com/favicon.ico">
+    
+    <link rel="stylesheet" href="/css/style.min.css">
+
+    <title>Ensemble Forecasting With AdaptiveHedge Part 2. How AdaptiveHedge improves forecast accuracy</title>
+</head>
+<body><header id="banner">
+    <h2><a href="https://www.twdsprojects.com">twdsprojects</a></h2>
+    <nav>
+        <ul>
+            <li>
+                <a href="/" title="posts">posts</a>
+            </li><li>
+                <a href="/about/" title="about">about</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main id="content">
+<article>
+    <header id="post-header">
+        <h1>Ensemble Forecasting With AdaptiveHedge Part 2. How AdaptiveHedge improves forecast accuracy</h1>
+        <div></div>
+    </header><script type="text/javascript"
+        src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<style type="table">
+td {
+  font-size: 3em,
+  base-font-size: 2px
+}
+</style>
+<h1 id="overview">Overview</h1>
+<p>In part 1. we saw how AdaptiveHedge can be used as part of an automated forecasting system.
+This follow up article will first demonstrate the improvement in forecasting accuracy that<br>
+AdaptiveHedge can make on a non-ensembling method like FollowTheLeader in section 1, before going
+through exactly how this improvement is achieved in section 2.</p>
+<h1 id="1-testing-performance-on-benchmark-data">1. Testing performance on benchmark data</h1>
+<h3 id="m3-competition-benchmark-data">M3 competition benchmark data</h3>
+<p>The international institute of forecasters holds the yearly M3 forecasting competition using
+a benchmark dataset. We can use an extract of this benchmark data to test the performance of
+adaptiveHedge and FollowTheLeader. In this analysis 72 4-month forecasts over a 7 year period for
+197 different time-series have been produced for each of the two model selection algorithms
+giving us 28368 forecasts in our analysis.</p>
+<h3 id="error-results">Error results</h3>
+<p>In table 2.1 we can see that AdaptiveHedge produces forecasts that are on average
+4.49% more accurate than FollowTheLeader on the benchmark dataset. It also shows that the forecasts produced
+have a 10.05% lower variance indicating that AdaptiveHedge forecasts are more stable
+than that of FollowTheLeader as well as more accurate.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>FollowTheLeader ($M)</th>
+<th>AdaptiveHedge ($M)</th>
+<th>Difference ($M)</th>
+<th>Difference (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>  Error Mean</td>
+<td>  2.59</td>
+<td>  2.47</td>
+<td>  0.12</td>
+<td>  4.49</td>
+</tr>
+<tr>
+<td>  Error Variance</td>
+<td>  5373.92</td>
+<td>  4833.19</td>
+<td>  539.74</td>
+<td>  10.05</td>
+</tr>
+</tbody>
+</table>
+<p>It should be noted that these results averages and that their are many forecasts where
+FollowTheLeader performs better as can be seen from figure 2.1.1 showing the distribution
+of the error differences of forecasts between the two model selection algorithms.</p>
+<figure><img src="/forecast_error_reduction_hist_plot.png"
+         alt="Fig 2.1.1 AdaptiveHedge vs FollowTheLeader error difference distribution. Blue indicates forecasts where AdaptiveHedge has lower error, while orange indicates FollowTheLeader has lower error"/><figcaption>
+            <p>Fig 2.1.1 AdaptiveHedge vs FollowTheLeader error difference distribution. Blue indicates forecasts where AdaptiveHedge has lower error, while orange indicates FollowTheLeader has lower error</p>
+        </figcaption>
+</figure>
+
+<p>As we can see, AdaptiveHedge has lower forecast error more often than not and that
+the error reduction in these instances is typically larger than the instances where
+FollowTheLeader has a lower forecast error.</p>
+<h3 id="statistical-analysis-of-performance-difference">Statistical analysis of performance difference</h3>
+<p>In a practical case, results like those above could be used as evidence to adopt
+AdaptiveHedge as the model selection algorithm used in an automated forecasting
+system. In doing so, an implicit inference would be being made i.e. that the
+performance difference observed past observations is going to continue into the future.</p>
+<p>Confidence interval estimation or hypothesis testing could enable the assessment of the
+validity of that inference. However, using parametric tests would risk type I error
+due to the non-independence of our error observations, as is the case with nearly all time
+series datasets. This can be observed by looking at the error observations over time.
+If the error observations were independent they would look like a &ldquo;white-noise&rdquo; time-series
+i.e. errors would be normally distributed around a fixed mean. As can be seen
+Figure 2.2.1, this is clearly not the case.</p>
+<figure><img src="/new_combiner_error_over_time_plot.png"
+         alt="Fig 2.1.2 Mean error of AdaptiveHedge vs FollowTheLeader forecasts over time"/><figcaption>
+            <p>Fig 2.1.2 Mean error of AdaptiveHedge vs FollowTheLeader forecasts over time</p>
+        </figcaption>
+</figure>
+
+<p>Instead, validation requires a further nested level of time-series cross-validation
+which is beyond the scope of this article. For now however, it is sufficient to observe
+that figure 2.1.2 shows AdaptiveHedge&rsquo;s error generally stays lower than FollowTheLeader&rsquo;s
+over a long period and it is therefor not unreasonable to assume this will continue.</p>
+<h1 id="2-how-adaptivehedge-outperforms-followtheleader">2. How AdaptiveHedge outperforms FollowTheLeader</h1>
+<h3 id="theory-of-how-adaptivehedge-outperforms-followtheleader">Theory of how AdaptiveHedge outperforms FollowTheLeader</h3>
+<p>We can understand how AdaptiveHedge outperforms FollowTheLeader using the bias-variance
+trade off framework. To help with this, it is important to realise that adaptiveHedge
+and FollowTheLeader are being trained on in-sample data, i.e. historical performance data,
+to make an out-of-sample prediction, i.e. a forecast.</p>
+<p>The difference between the two algorithms is how much differences to the in-sample data
+historical perfomance data effects their out of sample predictions. FollowTheLeader has the high sensitivity
+to the in-sample data, in that even a minor change to the historical performance
+of the primitive models can lead to a dramatically different forecast if the change
+leads to a different model having the lowest overall error. Comparatively in the case of
+AdaptiveHedge, the same change would only lead to a minor difference in the
+calculated weights resulting in a relatively small shift in the forecast produced.</p>
+<p>As a result of this lower sensitivity, FollowTheLeader has higher model-variance than
+FollowTheLeader and as a result poor forecasts when the best performing model in the
+in sample period does not perform well out of sample. In these instances, FollowTheLeader
+overfits the training data and generalises poorly whereas AdaptiveHedge avoids this error
+by including the models that perform well in the out of sample period, despite their performance
+in the in-sample period.</p>
+<h3 id="example-of-how-adaptivehedge-outperforms-followtheleader">Example of how AdaptiveHedge outperforms FollowTheLeader</h3>
+<p>We can gain further intuition of how AdaptiveHedge outperforms FollowTheLeader by looking
+at the following example. Fig 2.2.1 shows primitive model forecasts (prior to model selection)
+where the ARIMA (1,0,0) primitive model performs poorly. However, we can see in Fig 2.2.2
+and Fig 2.2.3 that this model&rsquo;s forecasts actually have the lowest historical error.</p>
+<figure><img src="/adh_win_example_primitive_models_actuals_vs_forecast_plot.png"
+         alt="Fig 2.2.1 Example of five forecasts produced by different time series models"/><figcaption>
+            <p>Fig 2.2.1 Example of five forecasts produced by different time series models</p>
+        </figcaption>
+</figure>
+
+<figure><img src="/adh_win_example_pm_forecasts_over_time_gif.gif"
+         alt="Fig 2.2.2 Historical forecasts prior to forecast shown in Fig 2.2.1"/><figcaption>
+            <p>Fig 2.2.2 Historical forecasts prior to forecast shown in Fig 2.2.1</p>
+        </figcaption>
+</figure>
+
+<figure><img src="/adh_win_example_primitive_model_error_over_time_plot.png"
+         alt="Fig 2.2.3 Aggregated error of historical forecasts shown in Fig 2.2.2"/><figcaption>
+            <p>Fig 2.2.3 Aggregated error of historical forecasts shown in Fig 2.2.2</p>
+        </figcaption>
+</figure>
+
+<!-- The aggregated error score for the whole period is shown in the graph bellow. -->
+<!-- <figure><img src="/adh_win_example_primitive_model_error_bar_plot.png"
+         alt="Fig 1.1 Example of three forecasts produced by different time series models"/><figcaption>
+            <p>Fig 1.1 Example of three forecasts produced by different time series models</p>
+        </figcaption>
+</figure>
+ -->
+<p>This is an especially bad instance of where the best performing model in-sample
+does not continue to perform well out-of-sample. As we can see in Fig 2.2.4,
+FollowTheLeader overfits to this in-sample data and calculates the ARIMA (1,0,0)
+model weight to be 1 and all other model weights to be 0. Fig 2.2.5 shows AdaptiveHedge
+avoiding this mistake by giving some weight to the Naive and Exponential Smoothing models
+that will perform well out of sample, despite their worse performance in-sample as seen in Fig 2.2.2 and
+Fig 2.2.3.</p>
+<figure><img src="/adh_win_example_FollowTheLeader_weights.png"
+         alt="2.2.4 Weights calculated by FollowTheLeader based on primitive model error shown in Fig 2.2.3"/><figcaption>
+            <p>2.2.4 Weights calculated by FollowTheLeader based on primitive model error shown in Fig 2.2.3</p>
+        </figcaption>
+</figure>
+
+<figure><img src="/adh_win_example_AdaptiveHedge_weights.png"
+         alt="Fig 2.2.5 Weights calculated by AdaptiveHedge based on primitive model error shown in Fig 2.2.3"/><figcaption>
+            <p>Fig 2.2.5 Weights calculated by AdaptiveHedge based on primitive model error shown in Fig 2.2.3</p>
+        </figcaption>
+</figure>
+
+<p>Finally, we can see the difference this makes to the error of the forecasts this produces in
+Fig 2.2.6. Although AdaptiveHedge still makes an inaccurate forecast, the accuracy of the
+forecast has been much reduced by the inclusion of models other than ARIMA (1,0,0).</p>
+<figure><img src="/adh_win_example_combiner_models_actuals_vs_forecast_plot.png"
+         alt="Fig 2.2.6 FollowTheLeader vs AdaptiveHedge forecast for period shown in Fig 2.2.1, with AdaptiveHedge having dramatically lower error"/><figcaption>
+            <p>Fig 2.2.6 FollowTheLeader vs AdaptiveHedge forecast for period shown in Fig 2.2.1, with AdaptiveHedge having dramatically lower error</p>
+        </figcaption>
+</figure>
+
+<h1 id="conclusion">Conclusion</h1>
+<p>The two articles have shown both the role that AdaptiveHedge can play in automating model selection
+and the improvement it can bring over a non-ensembling method like AdaptiveHedge.
+In future, I intend to write about the design of backtestForecaster, an API for automated
+time-series forecasting and model selection, as well as about a method for statistical validation
+of experimental results using a further nested layer of time-series cross validation.</p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+</article>
+
+        </main><footer id="footer">
+    Copyright © 2021 Your Name
+</footer>
+</body>
+</html>

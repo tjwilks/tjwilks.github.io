@@ -1,0 +1,6 @@
+@media (min-width: 100px) {
+    body {
+        min-width: 100px;
+        width: 1000px;
+    }
+}
